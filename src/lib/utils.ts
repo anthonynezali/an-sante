@@ -47,3 +47,26 @@ export const toDateString = (date: Date): string => {
     const progress = ((start - current) / (start - goal)) * 100
     return Math.min(100, Math.max(0, Math.round(progress)))
   }
+
+  // Retourne les 7 jours de la semaine courante (+ offset semaines)
+export const getWeekDays = (offset = 0) => {
+  const today = new Date()
+  const dow = today.getDay()
+  const mon = new Date(today)
+  mon.setDate(today.getDate() - ((dow + 6) % 7) + offset * 7)
+  const S = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"]
+  const M = ["JAN", "FÉV", "MAR", "AVR", "MAI", "JUN", "JUL", "AOÛ", "SEP", "OCT", "NOV", "DÉC"]
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(mon)
+    d.setDate(mon.getDate() + i)
+    return {
+      idx: i,
+      dateNum: d.getDate(),
+      month: M[d.getMonth()],
+      day: S[i],
+      isToday: d.toDateString() === today.toDateString(),
+      isPast: d < new Date(today.toDateString()),
+      dateStr: d.toISOString().slice(0, 10),
+    }
+  })
+}
