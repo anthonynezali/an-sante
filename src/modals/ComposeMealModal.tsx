@@ -44,7 +44,7 @@ export default function ComposeMealModal({ onClose, onSave, editMeal }: ComposeM
   const calcMacros = (item: IngItem) => {
     const ing = INGREDIENTS_DB.find(i => i.id === item.id)
     if (!ing) return { cal: 0, prot: 0, carb: 0, lip: 0 }
-    const ratio = item.qty / ing.dQty
+    const ratio = ing.dQty > 0 ? item.qty / ing.dQty : 0
     return {
       cal:  Math.round(ing.cal  * ratio),
       prot: Math.round(ing.prot * ratio),

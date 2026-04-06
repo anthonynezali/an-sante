@@ -1,9 +1,11 @@
 // ═══════════════════════════════════════════════════════════
 // APP — Composant racine de AN.Santé
+// Gère le state global branché sur Supabase
 // ═══════════════════════════════════════════════════════════
 
 import { useState } from 'react'
-import { TabId, Recipe, WeekMeals } from './lib/types'
+import { TabId, Recipe } from './lib/types'
+import { useRecipes, useMeals, useSettings } from './lib/hooks'
 import NavBar from './components/NavBar'
 import Dashboard from './tabs/Dashboard'
 import Training from './tabs/Training'
@@ -11,6 +13,7 @@ import Nutrition from './tabs/Nutrition'
 import Courses from './tabs/Courses'
 import Espace from './tabs/Espace'
 
+// Recette par défaut fournie au démarrage
 const DEFAULT_RECIPES: Recipe[] = [
   {
     id: 'pdj-classique',
@@ -28,31 +31,40 @@ const DEFAULT_RECIPES: Recipe[] = [
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard')
-  const [recipes, setRecipes] = useState<Recipe[]>(DEFAULT_RECIPES)
-  const [weekMeals, setWeekMeals] = useState<WeekMeals>({})
-  const [programStart, setProgramStart] = useState('2026-04-06')
+
+  // ── Données persistées via Supabase ──
+  const { recipes, saveRecipe, deleteRecipe } = useRecipes(DEFAULT_RECIPES)
+  const { weekMeals, saveMeal, deleteMeal } = useMeals()
+  const { programStart, setProgramStart } = useSettings()
 
   const renderTab = () => {
     switch (activeTab) {
-      case 'dashboard':  return <Dashboard programStart={programStart} />
-      case 'training':   return <Training />
-      case 'nutrition':  return (
-        <Nutrition
-          recipes={recipes}
-          setRecipes={setRecipes}
-          weekMeals={weekMeals}
-          setWeekMeals={setWeekMeals}
-        />
-      )
-      case 'courses':    return <Courses weekMeals={weekMeals} recipes={recipes} />
-      case 'espace':     return (
-        <Espace
-          recipes={recipes}
-          setRecipes={setRecipes}
-          programStart={programStart}
-          setProgramStart={setProgramStart}
-        />
-      )
+      case 'dashboard':
+        return <Dashboard programStart={programStart} />
+      case 'training':
+        return <Training />
+      case 'nutrition':
+        return (
+          <Nutrition
+            recipes={recipes}
+            weekMeals={weekMeals}
+            saveMeal={saveMeal}
+            deleteMeal={deleteMeal}
+            saveRecipe={saveRecipe}
+          />
+        )
+      case 'courses':
+        return <Courses weekMeals={weekMeals} recipes={recipes} />
+      case 'espace':
+        return (
+          <Espace
+            recipes={recipes}
+            saveRecipe={saveRecipe}
+            deleteRecipe={deleteRecipe}
+            programStart={programStart}
+            setProgramStart={setProgramStart}
+          />
+        )
     }
   }
 

@@ -11,6 +11,7 @@ import ProgressRing from '../components/ProgressRing'
 import MacroBar from '../components/MacroBar'
 import WeighInModal from '../modals/WeighInModal'
 import MeasureModal from '../modals/MeasureModal'
+import { useCheckins } from '../lib/hooks'
 
 interface DashboardProps {
   programStart: string
@@ -19,7 +20,11 @@ interface DashboardProps {
 export default function Dashboard({ programStart }: DashboardProps) {
   const [showWeighIn, setShowWeighIn] = useState(false)
   const [showMeasure, setShowMeasure] = useState(false)
-  const [current, setCurrent] = useState({ weight: 89.3, waist: 99 })
+  const { saveCheckin, latestCheckin } = useCheckins()
+  const current = {
+    weight: latestCheckin?.weight || 89.3,
+    waist: latestCheckin?.waist || 99,
+  }
 
   const phaseIdx = getCurrentPhase(programStart)
   const phase = PHASES[phaseIdx]
@@ -159,13 +164,13 @@ export default function Dashboard({ programStart }: DashboardProps) {
       {showWeighIn && (
         <WeighInModal
           onClose={() => setShowWeighIn(false)}
-          onSave={(weight) => setCurrent(prev => ({ ...prev, weight }))}
+          onSave={(weight) => saveCheckin({ date: new Date().toISOString().slice(0, 10), weight })}
         />
       )}
       {showMeasure && (
         <MeasureModal
           onClose={() => setShowMeasure(false)}
-          onSave={(data) => setCurrent(prev => ({ ...prev, waist: data.waist }))}
+          onSave={(data) => saveCheckin({ date: new Date().toISOString().slice(0, 10), waist: data.waist, hips: data.hips, chest: data.chest })}
         />
       )}
 

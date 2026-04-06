@@ -19,9 +19,9 @@ const FIXED_COLLATIONS = [
 
 const SLOTS = [
   { key: "pdj",  time: "05:45", name: "Petit-déj",  fixed: false },
-  { key: "col1", time: "10:00", name: "Collation",   fixed: true,  ...FIXED_COLLATIONS[0] },
+  { key: "col1", fixed: true,  ...FIXED_COLLATIONS[0] },
   { key: "midi", time: "12:30", name: "Déjeuner",    fixed: false },
-  { key: "col2", time: "16:00", name: "Collation",   fixed: true,  ...FIXED_COLLATIONS[1] },
+  { key: "col2", fixed: true,  ...FIXED_COLLATIONS[1] },
   { key: "soir", time: "19:30", name: "Dîner",       fixed: false },
 ]
 
@@ -68,12 +68,13 @@ function MacroBar3({ label, target, planned, consumed, color, unit = 'g' }: {
 
 interface NutritionProps {
   recipes: Recipe[]
-  setRecipes: (r: Recipe[]) => void
   weekMeals: WeekMeals
-  setWeekMeals: (fn: (prev: WeekMeals) => WeekMeals) => void
+  saveMeal: (date: string, slot: string, meal: any) => void
+  deleteMeal: (date: string, slot: string) => void
+  saveRecipe: (recipe: Recipe) => void
 }
 
-export default function Nutrition({ recipes, weekMeals, setWeekMeals }: NutritionProps) {
+export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, saveRecipe }: NutritionProps) {
   const [weekOff, setWeekOff] = useState(0)
   const days = getWeekDays(weekOff)
   const todayIdx = days.findIndex(d => d.isToday)
@@ -88,12 +89,13 @@ export default function Nutrition({ recipes, weekMeals, setWeekMeals }: Nutritio
   const dk = sel.dateStr
 
   const getMeal = (d: string, s: string) => weekMeals[`${d}-${s}`] || null
-  const clearMeal = (d: string, s: string) => setWeekMeals(p => { const n = { ...p }; delete n[`${d}-${s}`]; return n })
+  const clearMeal = (d: string, s: string) => deleteMeal(d, s)
   const toggleCheck = (k: string) => setCheckedMeals(p => ({ ...p, [k]: !p[k] }))
-  const toggleCourses = (d: string, s: string) => setWeekMeals(p => {
-    const k = `${d}-${s}`; const m = p[k]; if (!m) return p
-    return { ...p, [k]: { ...m, inCourses: !m.inCourses } }
-  })
+  const toggleCourses = (d: string, s: string) => {
+    const m = weekMeals[`${d}-${s}`]
+    if (!m) return
+    saveMeal(d, s, { ...m, inCourses: !m.inCourses })
+  }
 
   const planned = { cal: 0, prot: 0, carb: 0, lip: 0 }
   const consumed = { cal: 0, prot: 0, carb: 0, lip: 0 }
@@ -312,17 +314,17 @@ export default function Nutrition({ recipes, weekMeals, setWeekMeals }: Nutritio
           onClose={() => setPickerSlot(null)}
           onSelect={(recipe) => {
             const meal: RecipeMeal = { type: 'recipe', recipeId: recipe.id, inCourses: true }
-            setWeekMeals(p => ({ ...p, [`${dk}-${pickerSlot}`]: meal }))
+            saveMeal(dk, pickerSlot, meal)
             setPickerSlot(null)
           }}
-          onSaveRecipe={(recipe) => setRecipes([...recipes, recipe])}
+          onSaveRecipe={(recipe) => saveRecipe(recipe)}
         />
       )}
       {composeSlot && (
         <ComposeMealModal
           onClose={() => setComposeSlot(null)}
           onSave={(meal) => {
-            setWeekMeals(p => ({ ...p, [`${dk}-${composeSlot}`]: meal }))
+            saveMeal(dk, composeSlot, meal)
             setComposeSlot(null)
           }}
         />
@@ -338,7 +340,7 @@ export default function Nutrition({ recipes, weekMeals, setWeekMeals }: Nutritio
               editRecipe={recipe}
               onClose={() => setEditTarget(null)}
               onSave={(updated) => {
-                setRecipes(recipes.map(r => r.id === updated.id ? updated : r))
+                saveRecipe(updated)
                 setEditTarget(null)
               }}
             />
@@ -350,7 +352,7 @@ export default function Nutrition({ recipes, weekMeals, setWeekMeals }: Nutritio
               editMeal={meal}
               onClose={() => setEditTarget(null)}
               onSave={(updated) => {
-                setWeekMeals(p => ({ ...p, [`${editTarget.dk}-${editTarget.slot}`]: updated }))
+                saveMeal(editTarget.dk, editTarget.slot, updated)
                 setEditTarget(null)
               }}
             />

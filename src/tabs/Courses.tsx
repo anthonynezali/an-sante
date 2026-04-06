@@ -35,13 +35,10 @@ export default function Courses({ weekMeals, recipes }: CoursesProps) {
 
   // Agrégation des ingrédients
   const agg: Record<string, { ingId: string; totalQty: number; unit: string; cat: string; name: string }> = {}
-  let mealsCount = 0
-
   Object.entries(weekMeals).forEach(([key, meal]) => {
     if (!meal || !meal.inCourses) return
     const dateStr = key.split('-').slice(0, 3).join('-')
     if (dateStr < todayStr) return
-    mealsCount++
     const ings = getMealIngredients(meal, recipes)
     ings.forEach(ing => {
       const k = `${ing.ingId}-${ing.unit}`
@@ -98,10 +95,11 @@ export default function Courses({ weekMeals, recipes }: CoursesProps) {
               {cat.label}
             </p>
             {items.map(item => {
-              const isChecked = !!checked[item.ingId]
+              const ck = `${item.ingId}-${item.unit}`
+              const isChecked = !!checked[ck]
               return (
-                <div key={item.ingId}
-                  onClick={() => setChecked(p => ({ ...p, [item.ingId]: !p[item.ingId] }))}
+                <div key={ck}
+                  onClick={() => setChecked(p => ({ ...p, [ck]: !p[ck] }))}
                   className="flex items-center gap-3 rounded-2xl p-4 cursor-pointer transition-all active:scale-[0.98]"
                   style={{
                     background: isChecked ? 'rgba(34,197,94,0.08)' : 'rgba(255,255,255,0.04)',

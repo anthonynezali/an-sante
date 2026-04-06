@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════
-// SUPABASE — Connexion à la base de données
-// Désactivé jusqu'à la configuration du .env
+// SUPABASE — Client de connexion à la base de données
+// Les clés viennent du fichier .env (jamais dans le code)
 // ═══════════════════════════════════════════════════════════
 
 import { createClient } from '@supabase/supabase-js'
@@ -8,7 +8,6 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Export null si pas encore configuré — on activera avec Supabase
 export const supabase = supabaseUrl && supabaseKey
   ? createClient(supabaseUrl, supabaseKey)
   : null

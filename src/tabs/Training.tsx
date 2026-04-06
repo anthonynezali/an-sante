@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Check, ChevronDown, ChevronUp, Footprints, PersonStanding, TrendingUp, Lock, Moon } from 'lucide-react'
+import { useTrainingLogs } from '../lib/hooks'
 
 const CIRCUIT_A = [
   { name: "Squat goblet", reps: "15", weight: "Haltère lourd", note: "Haltère contre le torse, descente cuisses parallèles" },
@@ -57,6 +58,7 @@ function getTrainingSchedule() {
     const d = new Date(mon); d.setDate(mon.getDate() + i)
     return {
       idx: i, dateNum: d.getDate(), month: M[d.getMonth()], day: S[i],
+      dateStr: d.toISOString().slice(0, 10),
       type: types[i], label: labels[i], circuit: circuits[i], color: colors[i],
       duration: i < 5 ? (i === 2 ? "~45 min" : "~50 min") : "",
       isToday: d.toDateString() === today.toDateString(),
@@ -112,13 +114,14 @@ export default function Training() {
   const [walkDone, setWalkDone] = useState<Record<number, boolean>>({})
   const [stretchDone, setStretchDone] = useState<Record<number, boolean>>({})
   const [showStr, setShowStr] = useState(false)
-  const [completedDays, setCompletedDays] = useState<number[]>([])
+  const { completedDays, toggleTraining } = useTrainingLogs()
 
   const sel = days[selIdx]
+  const weekDoneCount = days.filter(d => completedDays.includes(d.dateStr)).length
   const isCircuit = sel.type === 'A' || sel.type === 'B'
   const isRest = sel.type === 'OFF'
   const isActive = !isRest
-  const isDone = completedDays.includes(selIdx)
+  const isDone = completedDays.includes(sel.dateStr)
 
   const toggleEx = (i: number) => {
     const key = `${selIdx}-${round}-${i}`
@@ -135,14 +138,14 @@ export default function Training() {
         <div>
           <p className="text-xs text-white/40 uppercase tracking-widest">Cette semaine</p>
           <p className="text-2xl font-extrabold text-white mt-1">
-            <span className="text-accent font-mono">{completedDays.length}</span>
+            <span className="text-accent font-mono">{weekDoneCount}</span>
             <span className="text-white/30 text-lg font-normal"> / 5 séances</span>
           </p>
         </div>
         <div className="flex gap-1.5">
           {Array.from({ length: 5 }, (_, i) => (
             <div key={i} className="w-2.5 h-2.5 rounded-full transition-all"
-              style={{ background: i < completedDays.length ? '#22c55e' : 'rgba(255,255,255,0.1)' }} />
+              style={{ background: i < weekDoneCount ? '#22c55e' : 'rgba(255,255,255,0.1)' }} />
           ))}
         </div>
       </div>
@@ -151,7 +154,7 @@ export default function Training() {
       <div className="flex gap-1.5">
         {days.map((d, i) => {
           const s = i === selIdx
-          const done = completedDays.includes(i)
+          const done = completedDays.includes(d.dateStr)
           return (
             <button key={i}
               onClick={() => { setSelIdx(i); setRound(1); setShowStr(false) }}
@@ -332,10 +335,7 @@ export default function Training() {
       {isActive && (
         <div className="flex justify-center pt-2">
           <button
-            onClick={() => {
-              if (isDone) setCompletedDays(completedDays.filter(d => d !== selIdx))
-              else setCompletedDays([...completedDays, selIdx])
-            }}
+            onClick={() => toggleTraining(sel.dateStr)}
             className="px-8 py-3 rounded-2xl text-sm font-semibold transition-all active:scale-95"
             style={{
               background: isDone ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)',

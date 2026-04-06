@@ -12,13 +12,15 @@ import {
 import { PHASES, INGREDIENTS_DB, CATEGORIES } from '../lib/constants'
 import { Recipe } from '../lib/types'
 import { getCurrentPhase, weeksSince } from '../lib/utils'
+import { useCustomIngredients } from '../lib/hooks'
 import RecipeCreatorModal from '../modals/RecipeCreatorModal'
 import Suivi from '../components/Suivi'
 
 // ── Props du composant ──
 interface EspaceProps {
   recipes: Recipe[]
-  setRecipes: (r: Recipe[]) => void
+  saveRecipe: (recipe: Recipe) => void
+  deleteRecipe: (id: string) => void
   programStart: string
   setProgramStart: (d: string) => void
 }
@@ -100,7 +102,7 @@ function CategorySection({ cat, ings, onDelete, onEdit }: {
 }
 
 // ── Composant principal ──
-export default function Espace({ recipes, setRecipes, programStart, setProgramStart }: EspaceProps) {
+export default function Espace({ recipes, saveRecipe, deleteRecipe, programStart, setProgramStart }: EspaceProps) {
 
   // ── State navigation ──
   const [subPage, setSubPage] = useState<SubPage>(null)
@@ -117,9 +119,10 @@ export default function Espace({ recipes, setRecipes, programStart, setProgramSt
   const [delRecipe, setDelRecipe] = useState<Recipe | null>(null)
 
   // ── State ingrédients ──
-  const [customIngs, setCustomIngs] = useState<typeof INGREDIENTS_DB>([])
+  const { customIngs, saveCustomIngredient, deleteCustomIngredient } = useCustomIngredients()
   const [showIngForm, setShowIngForm] = useState(false)
   const [newIng, setNewIng] = useState({ name: '', cat: 'prot', dQty: 100, dUnit: 'g', cal: 0, prot: 0, carb: 0, lip: 0 })
+  const [editIngId, setEditIngId] = useState<string | null>(null)
   const [deletedBaseIngs, setDeletedBaseIngs] = useState<string[]>([])
 
   // ── State roadmap ──
@@ -216,10 +219,10 @@ export default function Espace({ recipes, setRecipes, programStart, setProgramSt
                       key={cat.id}
                       cat={cat}
                       ings={catIngs}
-                      onDelete={(id) => setCustomIngs(customIngs.filter(i => i.id !== id))}
+                      onDelete={(id) => deleteCustomIngredient(id)}
                       onEdit={(ing) => {
                         setNewIng({ name: ing.name, cat: ing.cat, dQty: ing.dQty, dUnit: ing.dUnit, cal: ing.cal, prot: ing.prot, carb: ing.carb, lip: ing.lip })
-                        setCustomIngs(customIngs.filter(i => i.id !== ing.id))
+                        setEditIngId(ing.id)
                         setShowIngForm(true)
                       }}
                     />
@@ -258,8 +261,9 @@ export default function Espace({ recipes, setRecipes, programStart, setProgramSt
                 <div className="flex gap-2">
                   <button onClick={() => {
                     if (!newIng.name.trim()) return
-                    setCustomIngs(p => [...p, { ...newIng, id: `custom-${Date.now()}`, dUnit: 'g' }])
+                    saveCustomIngredient({ ...newIng, id: editIngId ?? `custom-${Date.now()}` })
                     setNewIng({ name: '', cat: 'prot', dQty: 100, dUnit: 'g', cal: 0, prot: 0, carb: 0, lip: 0 })
+                    setEditIngId(null)
                     setShowIngForm(false)
                   }} className="flex-1 py-2 rounded-xl bg-accent text-black text-sm font-semibold">Ajouter</button>
                   <button onClick={() => setShowIngForm(false)} className="flex-1 py-2 rounded-xl border border-white/10 text-white/50 text-sm">Annuler</button>
@@ -397,8 +401,7 @@ export default function Espace({ recipes, setRecipes, programStart, setProgramSt
             editRecipe={editRecipe}
             onClose={() => { setShowCreator(false); setEditRecipe(null) }}
             onSave={(recipe) => {
-              if (editRecipe) setRecipes(recipes.map(r => r.id === recipe.id ? recipe : r))
-              else setRecipes([...recipes, recipe])
+              saveRecipe(recipe)
               setShowCreator(false)
               setEditRecipe(null)
             }}
@@ -413,7 +416,7 @@ export default function Espace({ recipes, setRecipes, programStart, setProgramSt
               <p className="text-sm text-white/50">"{delRecipe.name}" sera définitivement supprimée.</p>
               <div className="flex gap-2">
                 <button onClick={() => setDelRecipe(null)} className="flex-1 py-3 rounded-xl border border-white/10 text-white/60 text-sm font-semibold">Annuler</button>
-                <button onClick={() => { setRecipes(recipes.filter(r => r.id !== delRecipe.id)); setDelRecipe(null) }}
+                <button onClick={() => { deleteRecipe(delRecipe.id); setDelRecipe(null) }}
                   className="flex-1 py-3 rounded-xl text-red-400 text-sm font-semibold" style={{ background: 'rgba(239,68,68,0.12)' }}>Supprimer</button>
               </div>
             </div>
