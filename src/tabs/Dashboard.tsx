@@ -5,21 +5,23 @@
 import { useState } from 'react'
 import { Scale, Ruler } from 'lucide-react'
 import { PHASES, MILESTONES } from '../lib/constants'
-import { progressPercent, weeksSince } from '../lib/utils'
 import ProgressRing from '../components/ProgressRing'
 import MacroBar from '../components/MacroBar'
 import WeighInModal from '../modals/WeighInModal'
 import MeasureModal from '../modals/MeasureModal'
+import { progressPercent, weeksSince, getCurrentPhase } from '../lib/utils'
 
-const PROGRAM_START = '2026-04-06'
+interface DashboardProps {
+  programStart: string
+}
 
-export default function Dashboard() {
+export default function Dashboard({ programStart }: DashboardProps) {
   const [showWeighIn, setShowWeighIn] = useState(false)
   const [showMeasure, setShowMeasure] = useState(false)
   const [current, setCurrent] = useState({ weight: 89.3, waist: 99 })
 
-  const phase = PHASES[0]
-  const weekNum = weeksSince(PROGRAM_START)
+  const phase = PHASES[getCurrentPhase(programStart)]
+  const weekNum = weeksSince(programStart)
   const milestone = MILESTONES[Math.min(weekNum - 1, MILESTONES.length - 1)]
   const weightPercent = progressPercent(89.3, current.weight, phase.weightGoal)
   const waistPercent = progressPercent(99, current.waist, phase.waistGoal)

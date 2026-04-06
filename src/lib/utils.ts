@@ -70,3 +70,11 @@ export const getWeekDays = (offset = 0) => {
     }
   })
 }
+
+// Retourne la phase active selon la date de début du programme
+export const getCurrentPhase = (startDate: string) => {
+  const week = weeksSince(startDate)
+  if (week <= 6) return 0  // Phase 1 — semaines 1-6
+  if (week <= 10) return 1 // Phase 2 — semaines 7-10
+  return 2                 // Phase 3 — semaines 11-16
+}

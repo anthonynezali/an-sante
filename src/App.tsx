@@ -1,6 +1,5 @@
 // ═══════════════════════════════════════════════════════════
 // APP — Composant racine de AN.Santé
-// Gère l'onglet actif et le state global (recettes, repas)
 // ═══════════════════════════════════════════════════════════
 
 import { useState } from 'react'
@@ -12,7 +11,6 @@ import Nutrition from './tabs/Nutrition'
 import Courses from './tabs/Courses'
 import Espace from './tabs/Espace'
 
-// Recette par défaut fournie au démarrage
 const DEFAULT_RECIPES: Recipe[] = [
   {
     id: 'pdj-classique',
@@ -32,10 +30,11 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('dashboard')
   const [recipes, setRecipes] = useState<Recipe[]>(DEFAULT_RECIPES)
   const [weekMeals, setWeekMeals] = useState<WeekMeals>({})
+  const [programStart, setProgramStart] = useState('2026-04-06')
 
   const renderTab = () => {
     switch (activeTab) {
-      case 'dashboard':  return <Dashboard />
+      case 'dashboard':  return <Dashboard programStart={programStart} />
       case 'training':   return <Training />
       case 'nutrition':  return (
         <Nutrition
@@ -46,7 +45,14 @@ export default function App() {
         />
       )
       case 'courses':    return <Courses weekMeals={weekMeals} recipes={recipes} />
-      case 'espace':     return <Espace recipes={recipes} setRecipes={setRecipes} />
+      case 'espace':     return (
+        <Espace
+          recipes={recipes}
+          setRecipes={setRecipes}
+          programStart={programStart}
+          setProgramStart={setProgramStart}
+        />
+      )
     }
   }
 
