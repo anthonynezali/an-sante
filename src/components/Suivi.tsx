@@ -4,7 +4,6 @@
 // Données fictives en attendant Supabase
 // ═══════════════════════════════════════════════════════════
 
-import { useState } from 'react'
 import { Weight, Ruler, Dumbbell, Flame } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
