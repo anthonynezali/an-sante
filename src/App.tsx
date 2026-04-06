@@ -57,7 +57,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-outfit pb-16">
+    <div className="min-h-screen text-white font-outfit pb-16">
       {renderTab()}
       <NavBar active={activeTab} onChange={setActiveTab} />
     </div>
