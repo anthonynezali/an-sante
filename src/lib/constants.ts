@@ -40,6 +40,7 @@ export const PHASES = [
     { id: "leg", label: "Légumes & fruits", color: "#22c55e" },
     { id: "frais", label: "Produits frais", color: "#3b82f6" },
     { id: "epic", label: "Épicerie", color: "#a855f7" },
+    { id: "supp", label: "Suppléments", color: "#6b7280" },
   ]
   
   // ═══════════════════════════════════════════════════════════

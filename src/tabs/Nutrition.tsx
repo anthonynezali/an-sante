@@ -345,6 +345,7 @@ export default function Nutrition({ recipes, weekMeals, setWeekMeals }: Nutritio
   if (meal.type === 'composed') {
     return (
       <ComposeMealModal
+        editMeal={meal}
         onClose={() => setEditTarget(null)}
         onSave={(updated) => {
           setWeekMeals(p => ({ ...p, [`${editTarget.dk}-${editTarget.slot}`]: updated }))
