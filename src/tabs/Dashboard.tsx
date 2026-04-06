@@ -6,6 +6,7 @@ import { PHASES, MILESTONES } from '../lib/constants'
 import { progressPercent, weeksSince } from '../lib/utils'
 import ProgressRing from '../components/ProgressRing'
 import MacroBar from '../components/MacroBar'
+import { Scale, Ruler } from 'lucide-react'
 
 // Date de début du programme (à mettre à jour quand tu démarres)
 const PROGRAM_START = '2026-04-06'
@@ -77,6 +78,17 @@ export default function Dashboard() {
         <p className="text-sm text-white/70">{milestone?.desc}</p>
       </div>
 
+    {/* ── BOUTONS ACTIONS ── */}
+    <div className="flex gap-3">
+        <button className="flex-1 flex items-center justify-center gap-2 bg-accent/10 border border-accent/30 text-accent rounded-2xl py-3 text-sm font-medium active:scale-95 transition-transform">
+          <Scale size={16} strokeWidth={1.8} />
+          Pesée du jour
+        </button>
+        <button className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/60 rounded-2xl py-3 text-sm font-medium active:scale-95 transition-transform">
+          <Ruler size={16} strokeWidth={1.8} />
+          Mesures lundi
+        </button>
+      </div>
     </div>
   )
 }
