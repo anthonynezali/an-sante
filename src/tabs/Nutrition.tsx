@@ -6,9 +6,11 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Check, Bell, Pencil, Trash2, ShoppingCart } from 'lucide-react'
 import { TARGETS, INGREDIENTS_DB } from '../lib/constants'
 import { getWeekDays } from '../lib/utils'
-import { Recipe, WeekMeals } from '../lib/types'
+import { Recipe, WeekMeals, RecipeMeal } from '../lib/types'
+import MealPickerModal from '../modals/MealPickerModal'
+import ComposeMealModal from '../modals/ComposeMealModal'
+import RecipeCreatorModal from '../modals/RecipeCreatorModal'
 
-// ── Collations fixes ──
 const FIXED_COLLATIONS = [
   { time: "10:00", name: "Collation", detail: "Whey 30g", cal: 120, prot: 24, carb: 3, lip: 1 },
   { time: "16:00", name: "Collation", detail: "Whey 30g", cal: 120, prot: 24, carb: 3, lip: 1 },
@@ -22,7 +24,6 @@ const SLOTS = [
   { key: "soir", time: "19:30", name: "Dîner",       fixed: false },
 ]
 
-// ── Helpers ──
 function getIng(id: string) { return INGREDIENTS_DB.find(x => x.id === id) }
 
 function getMealMacros(meal: WeekMeals[string], recipes: Recipe[]) {
@@ -42,7 +43,6 @@ function getMealMacros(meal: WeekMeals[string], recipes: Recipe[]) {
   return r ? { cal: r.cal, prot: r.prot, carb: r.carb, lip: r.lip } : { cal: 0, prot: 0, carb: 0, lip: 0 }
 }
 
-// ── MacroBar 3 niveaux ──
 function MacroBar3({ label, target, planned, consumed, color, unit = 'g' }: {
   label: string; target: number; planned: number; consumed: number; color: string; unit?: string
 }) {
@@ -64,7 +64,6 @@ function MacroBar3({ label, target, planned, consumed, color, unit = 'g' }: {
   )
 }
 
-// ── Props ──
 interface NutritionProps {
   recipes: Recipe[]
   setRecipes: (r: Recipe[]) => void
@@ -79,6 +78,9 @@ export default function Nutrition({ recipes, weekMeals, setWeekMeals }: Nutritio
   const [selIdx, setSelIdx] = useState(todayIdx >= 0 ? todayIdx : 0)
   const [checkedMeals, setCheckedMeals] = useState<Record<string, boolean>>({})
   const [delTarget, setDelTarget] = useState<{ dk: string; slot: string } | null>(null)
+  const [pickerSlot, setPickerSlot] = useState<string | null>(null)
+  const [composeSlot, setComposeSlot] = useState<string | null>(null)
+  const [editTarget, setEditTarget] = useState<{ dk: string; slot: string } | null>(null)
 
   const sel = days[selIdx] || days[0]
   const dk = sel.dateStr
@@ -91,7 +93,6 @@ export default function Nutrition({ recipes, weekMeals, setWeekMeals }: Nutritio
     return { ...p, [k]: { ...m, inCourses: !m.inCourses } }
   })
 
-  // Calcul macros
   const planned = { cal: 0, prot: 0, carb: 0, lip: 0 }
   const consumed = { cal: 0, prot: 0, carb: 0, lip: 0 }
   SLOTS.forEach(slot => {
@@ -221,9 +222,13 @@ export default function Nutrition({ recipes, weekMeals, setWeekMeals }: Nutritio
                     )}
                     {macros && <p className="font-mono text-xs text-white/30 mt-2">{macros.cal} cal · {macros.prot}g P · {macros.carb}g G · {macros.lip}g L</p>}
                     <div className="flex gap-2 mt-2">
-                      <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}>
-                        <Pencil size={11} /> Modifier
-                      </button>
+                    <button
+                      onClick={() => setEditTarget({ dk, slot: slot.key })}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold"
+                      style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}
+                    >
+                      <Pencil size={11} /> Modifier
+                    </button>
                       <button onClick={() => setDelTarget({ dk, slot: slot.key })}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold"
                         style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444' }}
@@ -247,14 +252,23 @@ export default function Nutrition({ recipes, weekMeals, setWeekMeals }: Nutritio
                 {/* Slot vide */}
                 {!slot.fixed && !meal && (
                   <div className="flex gap-2 mt-2">
-                    {slot.key === 'pdj' && (
-                      <button className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-accent border border-accent/20 bg-accent/8">
+                    {slot.key === 'pdj' ? (
+                      <button
+                        onClick={() => setPickerSlot(slot.key)}
+                        className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-accent border border-accent/20"
+                        style={{ background: 'rgba(34,197,94,0.08)' }}
+                      >
                         + Mon petit-déj
                       </button>
+                    ) : (
+                      <button
+                        onClick={() => setComposeSlot(slot.key)}
+                        className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white/50 border border-white/10"
+                        style={{ background: 'rgba(255,255,255,0.04)' }}
+                      >
+                        + Composer mon repas
+                      </button>
                     )}
-                    <button className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white/50 border border-white/10 bg-white/4">
-                      + Composer
-                    </button>
                   </div>
                 )}
               </div>
@@ -283,6 +297,63 @@ export default function Nutrition({ recipes, weekMeals, setWeekMeals }: Nutritio
         </div>
       )}
 
+      {/* ── MODALS ── */}
+      {pickerSlot && (
+        <MealPickerModal
+          slot={pickerSlot}
+          recipes={recipes}
+          onClose={() => setPickerSlot(null)}
+          onSelect={(recipe) => {
+            const meal: RecipeMeal = { type: 'recipe', recipeId: recipe.id, inCourses: true }
+            setWeekMeals(p => ({ ...p, [`${dk}-${pickerSlot}`]: meal }))
+            setPickerSlot(null)
+          }}
+          onSaveRecipe={(recipe) => {
+            setRecipes(prev => [...prev, recipe])
+          }}
+        />
+      )}
+      {composeSlot && (
+        <ComposeMealModal
+          onClose={() => setComposeSlot(null)}
+          onSave={(meal) => {
+            setWeekMeals(p => ({ ...p, [`${dk}-${composeSlot}`]: meal }))
+            setComposeSlot(null)
+          }}
+        />
+      )}
+      {/* ── MODIFIER UN REPAS ── */}
+{editTarget && (() => {
+  const meal = getMeal(editTarget.dk, editTarget.slot)
+  if (!meal) return null
+  
+  if (meal.type === 'recipe') {
+    const recipe = recipes.find(r => r.id === meal.recipeId)
+    return (
+      <RecipeCreatorModal
+        slot={editTarget.slot}
+        editRecipe={recipe}
+        onClose={() => setEditTarget(null)}
+        onSave={(updated) => {
+          setRecipes(prev => prev.map(r => r.id === updated.id ? updated : r))
+          setEditTarget(null)
+        }}
+      />
+    )
+  }
+
+  if (meal.type === 'composed') {
+    return (
+      <ComposeMealModal
+        onClose={() => setEditTarget(null)}
+        onSave={(updated) => {
+          setWeekMeals(p => ({ ...p, [`${editTarget.dk}-${editTarget.slot}`]: updated }))
+          setEditTarget(null)
+        }}
+      />
+    )
+  }
+})()}  
     </div>
   )
 }
