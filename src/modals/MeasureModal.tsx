@@ -29,7 +29,7 @@ export default function MeasureModal({ onClose, onSave }: MeasureModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/70 z-[100] flex items-end justify-center">
-      <div className="bg-[#1a1a1a] w-full max-w-[430px] rounded-t-3xl p-6 space-y-5 overflow-y-auto max-h-[90vh]">
+      <div className="w-full max-w-[430px] rounded-t-3xl p-6 space-y-5 overflow-y-auto max-h-[90vh]" style={{ background: '#0d1f35', border: '1px solid rgba(255,255,255,0.1)' }}>
 
         {/* En-tête */}
         <div className="flex items-center justify-between">

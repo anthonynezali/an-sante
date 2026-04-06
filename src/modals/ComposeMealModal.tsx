@@ -96,7 +96,7 @@ export default function ComposeMealModal({ onClose, onSave, editMeal }: ComposeM
 
   return (
     <div className="fixed inset-0 bg-black/70 z-[100] flex items-end justify-center">
-      <div className="bg-[#1a1a1a] w-full max-w-[430px] rounded-t-3xl p-6 overflow-y-auto max-h-[90vh] space-y-5">
+      <div className="w-full max-w-[430px] rounded-t-3xl p-6 overflow-y-auto max-h-[90vh] space-y-5" style={{ background: '#0d1f35', border: '1px solid rgba(255,255,255,0.1)' }}>
 
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">
@@ -195,7 +195,7 @@ export default function ComposeMealModal({ onClose, onSave, editMeal }: ComposeM
         {/* ── PICKER ── */}
         {picker && (
           <div className="fixed inset-0 bg-black/80 z-[110] flex items-end justify-center">
-            <div className="bg-[#222] w-full max-w-[430px] rounded-t-3xl p-6 overflow-y-auto max-h-[60vh]">
+            <div className="w-full max-w-[430px] rounded-t-3xl p-6 overflow-y-auto max-h-[60vh]" style={{ background: '#0a1628' }}>
               <div className="flex items-center justify-between mb-4">
                 <p className="font-semibold text-white text-sm">
                   {picker === 'prot' ? 'Choisir une protéine' : picker === 'fec' ? 'Choisir un féculent' : picker === 'supp' ? 'Choisir un supplément' : 'Choisir un légume'}
