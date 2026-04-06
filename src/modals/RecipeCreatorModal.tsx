@@ -8,6 +8,7 @@ import { X, Trash2 } from 'lucide-react'
 import { INGREDIENTS_DB, UNITS } from '../lib/constants'
 import { Recipe } from '../lib/types'
 
+
 interface RecipeCreatorModalProps {
   onClose: () => void
   onSave: (recipe: Recipe) => void
