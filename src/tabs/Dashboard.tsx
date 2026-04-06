@@ -2,28 +2,27 @@
 // DASHBOARD — Onglet Accueil de AN.Santé
 // ═══════════════════════════════════════════════════════════
 
+import { useState } from 'react'
+import { Scale, Ruler } from 'lucide-react'
 import { PHASES, MILESTONES } from '../lib/constants'
 import { progressPercent, weeksSince } from '../lib/utils'
 import ProgressRing from '../components/ProgressRing'
 import MacroBar from '../components/MacroBar'
-import { Scale, Ruler } from 'lucide-react'
+import WeighInModal from '../modals/WeighInModal'
+import MeasureModal from '../modals/MeasureModal'
 
-// Date de début du programme (à mettre à jour quand tu démarres)
 const PROGRAM_START = '2026-04-06'
 
-// Données actuelles (en attendant Supabase, on met les valeurs de départ)
-const current = { weight: 89.3, waist: 99 }
-
 export default function Dashboard() {
+  const [showWeighIn, setShowWeighIn] = useState(false)
+  const [showMeasure, setShowMeasure] = useState(false)
+  const [current, setCurrent] = useState({ weight: 89.3, waist: 99 })
+
   const phase = PHASES[0]
   const weekNum = weeksSince(PROGRAM_START)
   const milestone = MILESTONES[Math.min(weekNum - 1, MILESTONES.length - 1)]
-
-  // Calcul des progressions
   const weightPercent = progressPercent(89.3, current.weight, phase.weightGoal)
   const waistPercent = progressPercent(99, current.waist, phase.waistGoal)
-
-  // Nombre de jours restants dans la phase (6 semaines = 42 jours)
   const daysLeft = Math.max(0, 42 - (weekNum - 1) * 7)
 
   return (
@@ -78,17 +77,38 @@ export default function Dashboard() {
         <p className="text-sm text-white/70">{milestone?.desc}</p>
       </div>
 
-    {/* ── BOUTONS ACTIONS ── */}
-    <div className="flex gap-3">
-        <button className="flex-1 flex items-center justify-center gap-2 bg-accent/10 border border-accent/30 text-accent rounded-2xl py-3 text-sm font-medium active:scale-95 transition-transform">
+      {/* ── BOUTONS ACTIONS ── */}
+      <div className="flex gap-3">
+        <button
+          onClick={() => setShowWeighIn(true)}
+          className="flex-1 flex items-center justify-center gap-2 bg-accent/10 border border-accent/30 text-accent rounded-2xl py-3 text-sm font-medium active:scale-95 transition-transform"
+        >
           <Scale size={16} strokeWidth={1.8} />
           Pesée du jour
         </button>
-        <button className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/60 rounded-2xl py-3 text-sm font-medium active:scale-95 transition-transform">
+        <button
+          onClick={() => setShowMeasure(true)}
+          className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/60 rounded-2xl py-3 text-sm font-medium active:scale-95 transition-transform"
+        >
           <Ruler size={16} strokeWidth={1.8} />
           Mesures lundi
         </button>
       </div>
+
+      {/* ── MODALS ── */}
+      {showWeighIn && (
+        <WeighInModal
+          onClose={() => setShowWeighIn(false)}
+          onSave={(weight) => setCurrent(prev => ({ ...prev, weight }))}
+        />
+      )}
+      {showMeasure && (
+        <MeasureModal
+          onClose={() => setShowMeasure(false)}
+          onSave={(data) => setCurrent(prev => ({ ...prev, waist: data.waist }))}
+        />
+      )}
+
     </div>
   )
 }
