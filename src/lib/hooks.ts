@@ -171,16 +171,28 @@ export function useCustomIngredients() {
   const [customIngs, setCustomIngs] = useState<Ingredient[]>([])
 
   useEffect(() => {
+    console.log('[useCustomIngredients] mount — supabase:', !!supabase)
     if (!supabase) return
     supabase.from('custom_ingredients').select('*').order('created_at', { ascending: true })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        console.log('[useCustomIngredients] load result', { data, error })
+        if (error) console.error('[useCustomIngredients] load error:', error)
         if (data) setCustomIngs(data as Ingredient[])
       })
   }, [])
 
   const saveCustomIngredient = async (ing: Ingredient) => {
-    if (!supabase) return
-    await supabase.from('custom_ingredients').upsert(ing, { onConflict: 'id' })
+    console.log('[saveCustomIngredient] called with', ing)
+    if (!supabase) {
+      console.warn('[saveCustomIngredient] no supabase client')
+      return
+    }
+    const { error } = await supabase.from('custom_ingredients').upsert(ing, { onConflict: 'id' })
+    if (error) {
+      console.error('[saveCustomIngredient] upsert error:', error)
+      return
+    }
+    console.log('[saveCustomIngredient] upsert OK')
     setCustomIngs(prev => {
       const exists = prev.findIndex(i => i.id === ing.id)
       if (exists >= 0) { const u = [...prev]; u[exists] = ing; return u }
@@ -190,7 +202,8 @@ export function useCustomIngredients() {
 
   const deleteCustomIngredient = async (id: string) => {
     if (!supabase) return
-    await supabase.from('custom_ingredients').delete().eq('id', id)
+    const { error } = await supabase.from('custom_ingredients').delete().eq('id', id)
+    if (error) console.error('[deleteCustomIngredient] error:', error)
     setCustomIngs(prev => prev.filter(i => i.id !== id))
   }
 
