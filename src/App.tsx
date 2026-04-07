@@ -37,7 +37,6 @@ export default function App() {
   const { weekMeals, saveMeal, deleteMeal } = useMeals()
   const { programStart, setProgramStart } = useSettings()
   const { customIngs, saveCustomIngredient, deleteCustomIngredient } = useCustomIngredients()
-  console.log('[App] customIngs:', customIngs)
 
   const renderTab = () => {
     switch (activeTab) {

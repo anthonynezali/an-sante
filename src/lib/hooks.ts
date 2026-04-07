@@ -167,32 +167,34 @@ export function useTrainingLogs() {
 }
 
 // ── Ingrédients personnalisés ──
+// Mapping camelCase (Ingredient) <-> snake_case (table Supabase)
+const ingToRow = (ing: Ingredient) => ({
+  id: ing.id, name: ing.name, cat: ing.cat,
+  d_qty: ing.dQty, d_unit: ing.dUnit,
+  cal: ing.cal, prot: ing.prot, carb: ing.carb, lip: ing.lip,
+})
+const rowToIng = (row: any): Ingredient => ({
+  id: row.id, name: row.name, cat: row.cat,
+  dQty: row.d_qty, dUnit: row.d_unit,
+  cal: row.cal, prot: row.prot, carb: row.carb, lip: row.lip,
+})
+
 export function useCustomIngredients() {
   const [customIngs, setCustomIngs] = useState<Ingredient[]>([])
 
   useEffect(() => {
-    console.log('[useCustomIngredients] mount — supabase:', !!supabase)
     if (!supabase) return
     supabase.from('custom_ingredients').select('*').order('created_at', { ascending: true })
       .then(({ data, error }) => {
-        console.log('[useCustomIngredients] load result', { data, error })
-        if (error) console.error('[useCustomIngredients] load error:', error)
-        if (data) setCustomIngs(data as Ingredient[])
+        if (error) { console.error('[useCustomIngredients] load error:', error); return }
+        if (data) setCustomIngs(data.map(rowToIng))
       })
   }, [])
 
   const saveCustomIngredient = async (ing: Ingredient) => {
-    console.log('[saveCustomIngredient] called with', ing)
-    if (!supabase) {
-      console.warn('[saveCustomIngredient] no supabase client')
-      return
-    }
-    const { error } = await supabase.from('custom_ingredients').upsert(ing, { onConflict: 'id' })
-    if (error) {
-      console.error('[saveCustomIngredient] upsert error:', error)
-      return
-    }
-    console.log('[saveCustomIngredient] upsert OK')
+    if (!supabase) return
+    const { error } = await supabase.from('custom_ingredients').upsert(ingToRow(ing), { onConflict: 'id' })
+    if (error) { console.error('[saveCustomIngredient] upsert error:', error); return }
     setCustomIngs(prev => {
       const exists = prev.findIndex(i => i.id === ing.id)
       if (exists >= 0) { const u = [...prev]; u[exists] = ing; return u }

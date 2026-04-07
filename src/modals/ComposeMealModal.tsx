@@ -21,7 +21,6 @@ interface IngItem { id: string; qty: number; unit: string }
 type PickerType = 'prot' | 'fec' | 'leg' | 'frais' | 'epic' | 'supp'
 
 export default function ComposeMealModal({ onClose, onSave, editMeal, customIngs }: ComposeMealModalProps) {
-  console.log('[ComposeMealModal] customIngs reçus:', customIngs)
   const allIngs: Ingredient[] = [...INGREDIENTS_DB, ...customIngs]
   const findIng = (id: string) => allIngs.find(i => i.id === id)
   const byCat = (c: string) => allIngs.filter(i => i.cat === c)
