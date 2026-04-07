@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 import { TabId, Recipe } from './lib/types'
-import { useRecipes, useMeals, useSettings } from './lib/hooks'
+import { useRecipes, useMeals, useSettings, useCustomIngredients } from './lib/hooks'
 import NavBar from './components/NavBar'
 import Dashboard from './tabs/Dashboard'
 import Training from './tabs/Training'
@@ -36,6 +36,7 @@ export default function App() {
   const { recipes, saveRecipe, deleteRecipe } = useRecipes(DEFAULT_RECIPES)
   const { weekMeals, saveMeal, deleteMeal } = useMeals()
   const { programStart, setProgramStart } = useSettings()
+  const { customIngs, saveCustomIngredient, deleteCustomIngredient } = useCustomIngredients()
 
   const renderTab = () => {
     switch (activeTab) {
@@ -51,6 +52,7 @@ export default function App() {
             saveMeal={saveMeal}
             deleteMeal={deleteMeal}
             saveRecipe={saveRecipe}
+            customIngs={customIngs}
           />
         )
       case 'courses':
@@ -63,6 +65,9 @@ export default function App() {
             deleteRecipe={deleteRecipe}
             programStart={programStart}
             setProgramStart={setProgramStart}
+            customIngs={customIngs}
+            saveCustomIngredient={saveCustomIngredient}
+            deleteCustomIngredient={deleteCustomIngredient}
           />
         )
     }

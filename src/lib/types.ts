@@ -36,6 +36,8 @@ export interface ComposedMeal {
   prot: string
   fec: string[]
   leg: string[]
+  frais?: string[]
+  epic?: string[]
   supplements: string[]
   cal: number
   prot_g: number

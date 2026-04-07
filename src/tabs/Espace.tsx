@@ -10,9 +10,8 @@ import {
   UtensilsCrossed, Leaf, Map, Heart, Plus, Trash2, Pencil
 } from 'lucide-react'
 import { PHASES, INGREDIENTS_DB, CATEGORIES } from '../lib/constants'
-import { Recipe } from '../lib/types'
+import { Recipe, Ingredient } from '../lib/types'
 import { getCurrentPhase, weeksSince } from '../lib/utils'
-import { useCustomIngredients } from '../lib/hooks'
 import RecipeCreatorModal from '../modals/RecipeCreatorModal'
 import Suivi from '../components/Suivi'
 
@@ -23,6 +22,9 @@ interface EspaceProps {
   deleteRecipe: (id: string) => void
   programStart: string
   setProgramStart: (d: string) => void
+  customIngs: Ingredient[]
+  saveCustomIngredient: (ing: Ingredient) => void
+  deleteCustomIngredient: (id: string) => void
 }
 
 // ── Règles par défaut du garde-fou ──
@@ -48,11 +50,12 @@ const RULE_CATS = [
 type SubPage = 'suivi' | 'recettes' | 'ingredients' | 'roadmap' | 'gardefou' | 'choix' | null
 
 // ── Composant catégorie d'ingrédients pliable/dépliable ──
-function CategorySection({ cat, ings, onDelete, onEdit }: {
+function CategorySection({ cat, ings, onDelete, onEdit, isCustom }: {
   cat: { id: string; label: string; color: string }
-  ings: typeof INGREDIENTS_DB
+  ings: Ingredient[]
   onDelete?: (id: string) => void
-  onEdit?: (ing: typeof INGREDIENTS_DB[0]) => void
+  onEdit?: (ing: Ingredient) => void
+  isCustom?: (id: string) => boolean
 }) {
   const [open, setOpen] = useState(false)
   if (ings.length === 0) return null
@@ -78,7 +81,7 @@ function CategorySection({ cat, ings, onDelete, onEdit }: {
                 </p>
               </div>
               {/* Bouton modifier (ingrédients personnalisés uniquement) */}
-              {onEdit && (
+              {onEdit && (!isCustom || isCustom(ing.id)) && (
                 <button onClick={() => onEdit(ing)} className="p-1.5 rounded-lg" style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6' }}>
                   <Pencil size={12} />
                 </button>
@@ -102,7 +105,7 @@ function CategorySection({ cat, ings, onDelete, onEdit }: {
 }
 
 // ── Composant principal ──
-export default function Espace({ recipes, saveRecipe, deleteRecipe, programStart, setProgramStart }: EspaceProps) {
+export default function Espace({ recipes, saveRecipe, deleteRecipe, programStart, setProgramStart, customIngs, saveCustomIngredient, deleteCustomIngredient }: EspaceProps) {
 
   // ── State navigation ──
   const [subPage, setSubPage] = useState<SubPage>(null)
@@ -119,7 +122,6 @@ export default function Espace({ recipes, saveRecipe, deleteRecipe, programStart
   const [delRecipe, setDelRecipe] = useState<Recipe | null>(null)
 
   // ── State ingrédients ──
-  const { customIngs, saveCustomIngredient, deleteCustomIngredient } = useCustomIngredients()
   const [showIngForm, setShowIngForm] = useState(false)
   const [newIng, setNewIng] = useState({ name: '', cat: 'prot', dQty: 100, dUnit: 'g', cal: 0, prot: 0, carb: 0, lip: 0 })
   const [editIngId, setEditIngId] = useState<string | null>(null)
@@ -195,41 +197,29 @@ export default function Espace({ recipes, saveRecipe, deleteRecipe, programStart
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-white">Mes ingrédients</h2>
 
-            {/* Ingrédients de base — supprimables */}
+            {/* Toutes les catégories — base + personnalisés fusionnés */}
             {CATEGORIES.map(cat => {
-              const catIngs = INGREDIENTS_DB.filter(i => i.cat === cat.id && !deletedBaseIngs.includes(i.id))
+              const baseIngs = INGREDIENTS_DB.filter(i => i.cat === cat.id && !deletedBaseIngs.includes(i.id))
+              const customCatIngs = customIngs.filter(i => i.cat === cat.id)
+              const catIngs = [...baseIngs, ...customCatIngs]
               return (
                 <CategorySection
                   key={cat.id}
                   cat={cat}
                   ings={catIngs}
-                  onDelete={(id) => setDeletedBaseIngs(p => [...p, id])}
+                  isCustom={(id) => customIngs.some(c => c.id === id)}
+                  onDelete={(id) => {
+                    if (customIngs.some(c => c.id === id)) deleteCustomIngredient(id)
+                    else setDeletedBaseIngs(p => [...p, id])
+                  }}
+                  onEdit={(ing) => {
+                    setNewIng({ name: ing.name, cat: ing.cat, dQty: ing.dQty, dUnit: ing.dUnit, cal: ing.cal, prot: ing.prot, carb: ing.carb, lip: ing.lip })
+                    setEditIngId(ing.id)
+                    setShowIngForm(true)
+                  }}
                 />
               )
             })}
-
-            {/* Ingrédients personnalisés — supprimables et modifiables */}
-            {customIngs.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-xs text-white/40 uppercase tracking-widest">Personnalisés</p>
-                {CATEGORIES.map(cat => {
-                  const catIngs = customIngs.filter(i => i.cat === cat.id)
-                  return (
-                    <CategorySection
-                      key={cat.id}
-                      cat={cat}
-                      ings={catIngs}
-                      onDelete={(id) => deleteCustomIngredient(id)}
-                      onEdit={(ing) => {
-                        setNewIng({ name: ing.name, cat: ing.cat, dQty: ing.dQty, dUnit: ing.dUnit, cal: ing.cal, prot: ing.prot, carb: ing.carb, lip: ing.lip })
-                        setEditIngId(ing.id)
-                        setShowIngForm(true)
-                      }}
-                    />
-                  )
-                })}
-              </div>
-            )}
 
             {/* Formulaire ajout ingrédient */}
             {showIngForm ? (

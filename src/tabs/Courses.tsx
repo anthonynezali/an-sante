@@ -20,7 +20,7 @@ function getMealIngredients(meal: WeekMeals[string], recipes: Recipe[]) {
     return recipe.ingredients.map(ri => ({ ingId: ri.ingId, qty: ri.qty, unit: ri.unit }))
   }
   if (meal.type === 'composed') {
-    const ids = [meal.prot, ...meal.fec, ...meal.leg, ...meal.supplements]
+    const ids = [meal.prot, ...meal.fec, ...meal.leg, ...(meal.frais ?? []), ...(meal.epic ?? []), ...meal.supplements]
     return ids.filter(Boolean).map(id => {
       const ing = INGREDIENTS_DB.find(i => i.id === id)
       return ing ? { ingId: id, qty: ing.dQty, unit: ing.dUnit } : null

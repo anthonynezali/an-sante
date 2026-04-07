@@ -7,7 +7,7 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Check, Bell, Pencil, Trash2, ShoppingCart } from 'lucide-react'
 import { TARGETS, INGREDIENTS_DB } from '../lib/constants'
 import { getWeekDays } from '../lib/utils'
-import { Recipe, WeekMeals, RecipeMeal } from '../lib/types'
+import { Recipe, WeekMeals, RecipeMeal, Ingredient } from '../lib/types'
 import MealPickerModal from '../modals/MealPickerModal'
 import ComposeMealModal from '../modals/ComposeMealModal'
 import RecipeCreatorModal from '../modals/RecipeCreatorModal'
@@ -72,9 +72,10 @@ interface NutritionProps {
   saveMeal: (date: string, slot: string, meal: any) => void
   deleteMeal: (date: string, slot: string) => void
   saveRecipe: (recipe: Recipe) => void
+  customIngs: Ingredient[]
 }
 
-export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, saveRecipe }: NutritionProps) {
+export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, saveRecipe, customIngs }: NutritionProps) {
   const [weekOff, setWeekOff] = useState(0)
   const days = getWeekDays(weekOff)
   const todayIdx = days.findIndex(d => d.isToday)
@@ -322,6 +323,7 @@ export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, sa
       )}
       {composeSlot && (
         <ComposeMealModal
+          customIngs={customIngs}
           onClose={() => setComposeSlot(null)}
           onSave={(meal) => {
             saveMeal(dk, composeSlot, meal)
@@ -349,6 +351,7 @@ export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, sa
         if (meal.type === 'composed') {
           return (
             <ComposeMealModal
+              customIngs={customIngs}
               editMeal={meal}
               onClose={() => setEditTarget(null)}
               onSave={(updated) => {
