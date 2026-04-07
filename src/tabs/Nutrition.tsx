@@ -25,19 +25,13 @@ const SLOTS = [
   { key: "soir", time: "19:30", name: "Dîner",       fixed: false },
 ]
 
-function getIng(id: string) { return INGREDIENTS_DB.find(x => x.id === id) }
-
 function getMealMacros(meal: WeekMeals[string], recipes: Recipe[]) {
   if (meal.type === 'composed') {
-    const p = getIng(meal.prot)
-    const fecs = meal.fec.map(id => getIng(id))
-    const legs = meal.leg.map(id => getIng(id))
-    const all = [p, ...fecs, ...legs].filter(Boolean)
     return {
-      cal:  all.reduce((s, i) => s + (i?.cal  || 0), 0),
-      prot: all.reduce((s, i) => s + (i?.prot || 0), 0),
-      carb: all.reduce((s, i) => s + (i?.carb || 0), 0),
-      lip:  all.reduce((s, i) => s + (i?.lip  || 0), 0),
+      cal:  meal.cal    ?? 0,
+      prot: meal.prot_g ?? 0,
+      carb: meal.carb   ?? 0,
+      lip:  meal.lip    ?? 0,
     }
   }
   const r = recipes.find(r => r.id === meal.recipeId)
@@ -81,6 +75,7 @@ interface NutritionProps {
 }
 
 export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, saveRecipe, customIngs }: NutritionProps) {
+  const findIng = (id: string) => INGREDIENTS_DB.find(x => x.id === id) || customIngs.find(x => x.id === id)
   const [weekOff, setWeekOff] = useState(0)
   const days = getWeekDays(weekOff)
   const todayIdx = days.findIndex(d => d.isToday)
@@ -232,9 +227,9 @@ export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, sa
                     )}
                     {meal.type === 'composed' && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
-                        {meal.prot && <span className="text-xs px-2 py-0.5 rounded-lg font-semibold" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>{getIng(meal.prot)?.name}</span>}
-                        {meal.fec.map(id => <span key={id} className="text-xs px-2 py-0.5 rounded-lg font-semibold" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}>{getIng(id)?.name}</span>)}
-                        {meal.leg.map(id => <span key={id} className="text-xs px-2 py-0.5 rounded-lg font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>{getIng(id)?.name}</span>)}
+                        {meal.prot && <span className="text-xs px-2 py-0.5 rounded-lg font-semibold" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>{findIng(meal.prot)?.name}</span>}
+                        {meal.fec.map(id => <span key={id} className="text-xs px-2 py-0.5 rounded-lg font-semibold" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b' }}>{findIng(id)?.name}</span>)}
+                        {meal.leg.map(id => <span key={id} className="text-xs px-2 py-0.5 rounded-lg font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e' }}>{findIng(id)?.name}</span>)}
                       </div>
                     )}
                     {macros && <p className="font-mono text-xs text-white/30 mt-2">{macros.cal} cal · {macros.prot}g P · {macros.carb}g G · {macros.lip}g L</p>}
