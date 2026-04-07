@@ -4,7 +4,7 @@
 // ═══════════════════════════════════════════════════════════
 
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Check, Bell, Pencil, Trash2, ShoppingCart } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, Bell, Pencil, Trash2, ShoppingCart, Plus } from 'lucide-react'
 import { TARGETS, INGREDIENTS_DB } from '../lib/constants'
 import { getWeekDays } from '../lib/utils'
 import { Recipe, WeekMeals, RecipeMeal, Ingredient } from '../lib/types'
@@ -273,19 +273,11 @@ export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, sa
                 {/* Slot vide */}
                 {!slot.fixed && !meal && (
                   <div className="flex gap-2 mt-2">
-                    {slot.key === 'pdj' ? (
-                      <button onClick={() => setPickerSlot(slot.key)}
-                        className="flex-1 py-3 rounded-xl text-sm font-semibold text-accent active:scale-95 transition-all"
-                        style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
-                        + Mon petit-déj
-                      </button>
-                    ) : (
-                      <button onClick={() => setComposeSlot(slot.key)}
-                        className="flex-1 py-3 rounded-xl text-sm font-semibold text-white/45 active:scale-95 transition-all"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                        + Composer mon repas
-                      </button>
-                    )}
+                    <button onClick={() => setPickerSlot(slot.key)}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-accent active:scale-95 transition-all"
+                      style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+                      <Plus size={14} /> Ajouter un repas
+                    </button>
                   </div>
                 )}
               </div>
@@ -337,6 +329,11 @@ export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, sa
             setPickerSlot(null)
           }}
           onSaveRecipe={(recipe) => saveRecipe(recipe)}
+          onCompose={() => {
+            const s = pickerSlot
+            setPickerSlot(null)
+            setComposeSlot(s)
+          }}
         />
       )}
       {composeSlot && (
