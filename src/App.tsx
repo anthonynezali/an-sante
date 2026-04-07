@@ -34,7 +34,7 @@ export default function App() {
 
   // ── Données persistées via Supabase ──
   const { recipes, saveRecipe, deleteRecipe } = useRecipes(DEFAULT_RECIPES)
-  const { weekMeals, saveMeal, deleteMeal } = useMeals()
+  const { weekMeals, mealChecks, saveMeal, deleteMeal, toggleMealCheck } = useMeals()
   const { programStart, setProgramStart } = useSettings()
   const { customIngs, saveCustomIngredient, deleteCustomIngredient } = useCustomIngredients()
 
@@ -53,6 +53,8 @@ export default function App() {
             deleteMeal={deleteMeal}
             saveRecipe={saveRecipe}
             customIngs={customIngs}
+            mealChecks={mealChecks}
+            toggleMealCheck={toggleMealCheck}
           />
         )
       case 'courses':

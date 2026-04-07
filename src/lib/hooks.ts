@@ -74,6 +74,7 @@ export function useRecipes(defaultRecipes: Recipe[]) {
 // ── Repas ──
 export function useMeals() {
   const [weekMeals, setWeekMeals] = useState<Record<string, any>>({})
+  const [mealChecks, setMealChecks] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     if (!supabase) return
@@ -85,18 +86,25 @@ export function useMeals() {
       .then(({ data }) => {
         if (data) {
           const meals: Record<string, any> = {}
-          data.forEach(m => { meals[`${m.date}-${m.slot}`] = m.meal_data })
+          const checks: Record<string, boolean> = {}
+          data.forEach(m => {
+            const k = `${m.date}-${m.slot}`
+            meals[k] = m.meal_data
+            if (m.checked) checks[k] = true
+          })
           setWeekMeals(meals)
+          setMealChecks(checks)
         }
       })
   }, [])
 
   const saveMeal = async (date: string, slot: string, meal: any) => {
     if (!supabase) return
-    await supabase.from('meals').upsert(
+    const { error } = await supabase.from('meals').upsert(
       { date, slot, meal_data: meal, in_courses: meal.inCourses },
       { onConflict: 'date,slot' }
     )
+    if (error) { console.error('[saveMeal] error:', error); return }
     setWeekMeals(p => ({ ...p, [`${date}-${slot}`]: meal }))
   }
 
@@ -104,9 +112,27 @@ export function useMeals() {
     if (!supabase) return
     await supabase.from('meals').delete().eq('date', date).eq('slot', slot)
     setWeekMeals(p => { const n = { ...p }; delete n[`${date}-${slot}`]; return n })
+    setMealChecks(p => { const n = { ...p }; delete n[`${date}-${slot}`]; return n })
   }
 
-  return { weekMeals, setWeekMeals, saveMeal, deleteMeal }
+  const toggleMealCheck = async (date: string, slot: string) => {
+    if (!supabase) return
+    const k = `${date}-${slot}`
+    const next = !mealChecks[k]
+    // Optimistic update
+    setMealChecks(p => ({ ...p, [k]: next }))
+    const { error } = await supabase.from('meals')
+      .update({ checked: next })
+      .eq('date', date)
+      .eq('slot', slot)
+    if (error) {
+      console.error('[toggleMealCheck] error:', error)
+      // Rollback
+      setMealChecks(p => ({ ...p, [k]: !next }))
+    }
+  }
+
+  return { weekMeals, mealChecks, saveMeal, deleteMeal, toggleMealCheck }
 }
 
 // ── Paramètres utilisateur (date de début, règles...) ──

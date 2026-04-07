@@ -72,15 +72,17 @@ interface NutritionProps {
   deleteMeal: (date: string, slot: string) => void
   saveRecipe: (recipe: Recipe) => void
   customIngs: Ingredient[]
+  mealChecks: Record<string, boolean>
+  toggleMealCheck: (date: string, slot: string) => void
 }
 
-export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, saveRecipe, customIngs }: NutritionProps) {
+export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, saveRecipe, customIngs, mealChecks, toggleMealCheck }: NutritionProps) {
   const findIng = (id: string) => INGREDIENTS_DB.find(x => x.id === id) || customIngs.find(x => x.id === id)
   const [weekOff, setWeekOff] = useState(0)
   const days = getWeekDays(weekOff)
   const todayIdx = days.findIndex(d => d.isToday)
   const [selIdx, setSelIdx] = useState(todayIdx >= 0 ? todayIdx : 0)
-  const [checkedMeals, setCheckedMeals] = useState<Record<string, boolean>>({})
+  const [checkedFixed, setCheckedFixed] = useState<Record<string, boolean>>({})
   const [delTarget, setDelTarget] = useState<{ dk: string; slot: string } | null>(null)
   const [pickerSlot, setPickerSlot] = useState<string | null>(null)
   const [composeSlot, setComposeSlot] = useState<string | null>(null)
@@ -91,7 +93,20 @@ export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, sa
 
   const getMeal = (d: string, s: string) => weekMeals[`${d}-${s}`] || null
   const clearMeal = (d: string, s: string) => deleteMeal(d, s)
-  const toggleCheck = (k: string) => setCheckedMeals(p => ({ ...p, [k]: !p[k] }))
+  const isChecked = (d: string, s: string) => {
+    const slotDef = SLOTS.find(x => x.key === s)
+    if (slotDef?.fixed) return !!checkedFixed[`${d}-${s}`]
+    return !!mealChecks[`${d}-${s}`]
+  }
+  const toggleCheck = (d: string, s: string) => {
+    const slotDef = SLOTS.find(x => x.key === s)
+    if (slotDef?.fixed) {
+      setCheckedFixed(p => ({ ...p, [`${d}-${s}`]: !p[`${d}-${s}`] }))
+      return
+    }
+    if (!weekMeals[`${d}-${s}`]) return
+    toggleMealCheck(d, s)
+  }
   const toggleCourses = (d: string, s: string) => {
     const m = weekMeals[`${d}-${s}`]
     if (!m) return
@@ -101,18 +116,17 @@ export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, sa
   const planned = { cal: 0, prot: 0, carb: 0, lip: 0 }
   const consumed = { cal: 0, prot: 0, carb: 0, lip: 0 }
   SLOTS.forEach(slot => {
-    const ck = `${dk}-${slot.key}`
-    const isChecked = !!checkedMeals[ck]
+    const done = isChecked(dk, slot.key)
     if (slot.fixed) {
       const s = slot as typeof FIXED_COLLATIONS[0] & { key: string; name: string; fixed: boolean }
       planned.cal += s.cal; planned.prot += s.prot; planned.carb += s.carb; planned.lip += s.lip
-      if (isChecked) { consumed.cal += s.cal; consumed.prot += s.prot; consumed.carb += s.carb; consumed.lip += s.lip }
+      if (done) { consumed.cal += s.cal; consumed.prot += s.prot; consumed.carb += s.carb; consumed.lip += s.lip }
     } else {
       const meal = getMeal(dk, slot.key)
       if (meal) {
         const m = getMealMacros(meal, recipes)
         planned.cal += m.cal; planned.prot += m.prot; planned.carb += m.carb; planned.lip += m.lip
-        if (isChecked) { consumed.cal += m.cal; consumed.prot += m.prot; consumed.carb += m.carb; consumed.lip += m.lip }
+        if (done) { consumed.cal += m.cal; consumed.prot += m.prot; consumed.carb += m.carb; consumed.lip += m.lip }
       }
     }
   })
@@ -180,8 +194,7 @@ export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, sa
 
       {/* ── SLOTS REPAS ── */}
       {SLOTS.map(slot => {
-        const ck = `${dk}-${slot.key}`
-        const done = !!checkedMeals[ck]
+        const done = isChecked(dk, slot.key)
         const meal = !slot.fixed ? getMeal(dk, slot.key) : null
         const macros = meal ? getMealMacros(meal, recipes) : null
 
@@ -194,7 +207,7 @@ export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, sa
             }}>
             <div className="flex items-start gap-3">
               {/* Checkbox */}
-              <div onClick={() => toggleCheck(ck)}
+              <div onClick={() => toggleCheck(dk, slot.key)}
                 className="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center mt-0.5 border-2 cursor-pointer transition-all"
                 style={{ background: done ? '#22c55e' : 'transparent', borderColor: done ? '#22c55e' : 'rgba(150,150,150,0.4)' }}>
                 {done && <Check size={13} className="text-black" strokeWidth={3} />}
