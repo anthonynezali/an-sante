@@ -170,12 +170,12 @@ export function useTrainingLogs() {
 // Mapping camelCase (Ingredient) <-> snake_case (table Supabase)
 const ingToRow = (ing: Ingredient) => ({
   id: ing.id, name: ing.name, cat: ing.cat,
-  d_qty: ing.dQty, d_unit: ing.dUnit,
+  dqty: ing.dQty, dunit: ing.dUnit,
   cal: ing.cal, prot: ing.prot, carb: ing.carb, lip: ing.lip,
 })
 const rowToIng = (row: any): Ingredient => ({
   id: row.id, name: row.name, cat: row.cat,
-  dQty: row.d_qty, dUnit: row.d_unit,
+  dQty: row.dqty, dUnit: row.dunit,
   cal: row.cal, prot: row.prot, carb: row.carb, lip: row.lip,
 })
 
