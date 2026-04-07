@@ -41,7 +41,12 @@ function getMealMacros(meal: WeekMeals[string], recipes: Recipe[]) {
     }
   }
   const r = recipes.find(r => r.id === meal.recipeId)
-  return r ? { cal: r.cal, prot: r.prot, carb: r.carb, lip: r.lip } : { cal: 0, prot: 0, carb: 0, lip: 0 }
+  return {
+    cal:  r?.cal  ?? meal.cal  ?? 0,
+    prot: r?.prot ?? meal.prot ?? 0,
+    carb: r?.carb ?? meal.carb ?? 0,
+    lip:  r?.lip  ?? meal.lip  ?? 0,
+  }
 }
 
 // ── MacroBar 3 niveaux ──
@@ -314,7 +319,12 @@ export default function Nutrition({ recipes, weekMeals, saveMeal, deleteMeal, sa
           recipes={recipes}
           onClose={() => setPickerSlot(null)}
           onSelect={(recipe) => {
-            const meal: RecipeMeal = { type: 'recipe', recipeId: recipe.id, inCourses: true }
+            const meal: RecipeMeal = {
+              type: 'recipe',
+              recipeId: recipe.id,
+              cal: recipe.cal, prot: recipe.prot, carb: recipe.carb, lip: recipe.lip,
+              inCourses: true,
+            }
             saveMeal(dk, pickerSlot, meal)
             setPickerSlot(null)
           }}

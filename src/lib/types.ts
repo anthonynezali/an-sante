@@ -50,6 +50,10 @@ export interface ComposedMeal {
 export interface RecipeMeal {
   type: 'recipe'
   recipeId: string
+  cal?: number
+  prot?: number
+  carb?: number
+  lip?: number
   inCourses: boolean
 }
 
